@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'cart_data.dart';
+import '../../data/cart_data.dart';
 
-import 'checkout_page.dart';
-import 'login_page.dart';
+import '../cart/checkout_page.dart';
+import '../auth/login_page.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String name;
   final String price;
+  final String description;
+  final String image;
 
-  const ProductDetailPage({super.key, required this.name, required this.price});
+  const ProductDetailPage({
+    super.key,
+    required this.name,
+    required this.price,
+    required this.description,
+    required this.image,
+  });
 
   @override
-  State<ProductDetailPage> createState() => _ProductDetailPageState();
+  State<ProductDetailPage> createState() =>
+      _ProductDetailPageState();
 }
+
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
   int quantity = 1;
@@ -84,26 +94,33 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.name),
-        backgroundColor: Colors.deepOrange,
-        foregroundColor: Colors.white,
-      ),
+      Widget build(BuildContext context) {
+
+        print("IMAGE DETAIL = ${widget.image}");
+
+        return Scaffold(
 
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
 
           children: [
-            Container(
+            SizedBox(
               height: 300,
               width: double.infinity,
-
-              color: Colors.grey.shade300,
-
-              child: const Icon(Icons.computer, size: 120),
+              child: Image.network(
+                "http://192.168.202.151:8000/storage/${widget.image}",
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey.shade300,
+                    child: const Icon(
+                      Icons.image_not_supported,
+                      size: 120,
+                    ),
+                  );
+                },
+              ),
             ),
 
             Padding(
@@ -144,9 +161,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                   const SizedBox(height: 10),
 
-                  const Text(
-                    "Produk hardware komputer berkualitas tinggi dengan garansi resmi dan performa terbaik untuk gaming maupun pekerjaan profesional.",
-                  ),
+                  Text(
+                      widget.description,
+                      style: const TextStyle(fontSize: 16),
+                    ),
 
                   const SizedBox(height: 20),
 

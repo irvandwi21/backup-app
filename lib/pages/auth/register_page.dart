@@ -2,33 +2,45 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
-import 'home_page.dart';
-import 'register_page.dart';
+import 'login_page.dart';
 
-class LoginPage extends StatefulWidget {
-  final bool fromCheckout;
-
-  const LoginPage({super.key, this.fromCheckout = false});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  TextEditingController emailController = TextEditingController();
+class _RegisterPageState extends State<RegisterPage> {
+  final TextEditingController nameController = TextEditingController();
 
-  TextEditingController passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+
+  final TextEditingController passwordController = TextEditingController();
 
   String message = "";
 
-  String baseUrl = "http://192.168.95.151:8000/api";
+  String baseUrl = "http://192.168.202.151:8000/api";
 
-  Future<void> login() async {
+  Future<void> register() async {
+    print("===== REGISTER DIKLIK =====");
+
+    if (nameController.text.isEmpty ||
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty) {
+      setState(() {
+        message = "Semua field wajib diisi";
+      });
+
+      return;
+    }
+
     try {
+      print("Request ke : $baseUrl/register");
+
       var response = await http.post(
-        Uri.parse("$baseUrl/login"),
+        Uri.parse("$baseUrl/register"),
 
         headers: {
           "Accept": "application/json",
@@ -36,37 +48,39 @@ class _LoginPageState extends State<LoginPage> {
         },
 
         body: jsonEncode({
+          "name": nameController.text,
           "email": emailController.text,
           "password": passwordController.text,
         }),
       );
 
+      print("Status Code : ${response.statusCode}");
+      print("Response : ${response.body}");
+
       var data = jsonDecode(response.body);
 
-      if (response.statusCode == 200) {
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-
-        await prefs.setString("token", data["token"]);
-
+      if (response.statusCode == 200 || response.statusCode == 201) {
         if (!mounted) return;
 
-        // LOGIN DARI CHECKOUT
-        if (widget.fromCheckout) {
-          Navigator.pop(context, true);
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage()),
-          );
-        }
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Register berhasil")));
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+        );
       } else {
         setState(() {
-          message = data["message"] ?? "Email atau Password Salah";
+          message = data["message"] ?? "Register gagal";
         });
       }
     } catch (e) {
+      print("ERROR REGISTER");
+      print(e);
+
       setState(() {
-        message = "Gagal konek ke server";
+        message = "Gagal koneksi ke server";
       });
     }
   }
@@ -75,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Login Marketplace"),
+        title: const Text("Register Marketplace"),
         backgroundColor: Colors.blue,
       ),
 
@@ -85,6 +99,17 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           children: [
             const SizedBox(height: 30),
+
+            TextField(
+              controller: nameController,
+
+              decoration: const InputDecoration(
+                labelText: "Nama",
+                border: OutlineInputBorder(),
+              ),
+            ),
+
+            const SizedBox(height: 20),
 
             TextField(
               controller: emailController,
@@ -99,6 +124,7 @@ class _LoginPageState extends State<LoginPage> {
 
             TextField(
               controller: passwordController,
+
               obscureText: true,
 
               decoration: const InputDecoration(
@@ -113,7 +139,7 @@ class _LoginPageState extends State<LoginPage> {
               width: double.infinity,
 
               child: ElevatedButton(
-                onPressed: login,
+                onPressed: register,
 
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
@@ -121,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
 
                 child: const Text(
-                  "LOGIN",
+                  "REGISTER",
 
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
@@ -141,14 +167,14 @@ class _LoginPageState extends State<LoginPage> {
 
             TextButton(
               onPressed: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
 
-                  MaterialPageRoute(builder: (context) => const RegisterPage()),
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
                 );
               },
 
-              child: const Text("Belum punya akun? Register"),
+              child: const Text("Sudah punya akun? Login"),
             ),
           ],
         ),
