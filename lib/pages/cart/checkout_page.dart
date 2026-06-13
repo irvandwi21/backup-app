@@ -1,7 +1,62 @@
 import 'package:flutter/material.dart';
+import '../../data/cart_data.dart';
+import '../../services/order_service.dart';
 
-class CheckoutPage extends StatelessWidget {
+class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
+
+  @override
+  State<CheckoutPage> createState() => _CheckoutPageState();
+}
+
+class _CheckoutPageState extends State<CheckoutPage> {
+  Future<void> buatPesanan() async {
+    bool sukses = true;
+
+    for (var item in CartData.items) {
+      bool result = await OrderService().createOrder(
+        productId: item["id"],
+        quantity: item["qty"],
+      );
+
+      if (!result) {
+        sukses = false;
+      }
+    }
+
+    if (!mounted) return;
+
+    if (sukses) {
+      CartData.items.clear();
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Pesanan berhasil dibuat")));
+
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Pesanan gagal dibuat")));
+    }
+  }
+
+  final TextEditingController namaController = TextEditingController();
+
+  final TextEditingController alamatController = TextEditingController();
+
+  final TextEditingController hpController = TextEditingController();
+
+  double getTotal() {
+    double total = 0;
+
+    for (var item in CartData.items) {
+      total +=
+          (double.tryParse(item["price"].toString()) ?? 0) * (item["qty"] ?? 1);
+    }
+
+    return total;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,10 +67,107 @@ class CheckoutPage extends StatelessWidget {
         foregroundColor: Colors.white,
       ),
 
-      body: const Center(
-        child: Text(
-          "Halaman Checkout",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(15),
+
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+
+          children: [
+            const Text(
+              "Data Penerima",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 15),
+
+            TextField(
+              controller: namaController,
+              decoration: const InputDecoration(
+                labelText: "Nama Lengkap",
+                border: OutlineInputBorder(),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            TextField(
+              controller: hpController,
+              decoration: const InputDecoration(
+                labelText: "Nomor HP",
+                border: OutlineInputBorder(),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            TextField(
+              controller: alamatController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: "Alamat Lengkap",
+                border: OutlineInputBorder(),
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            const Text(
+              "Ringkasan Belanja",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 10),
+
+            ...CartData.items.map((item) {
+              return ListTile(
+                title: Text(item["name"]),
+                subtitle: Text("Qty : ${item["qty"]}"),
+                trailing: Text("Rp ${item["price"]}"),
+              );
+            }),
+
+            const Divider(),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+              children: [
+                const Text(
+                  "Total",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+
+                Text(
+                  "Rp ${getTotal().toStringAsFixed(0)}",
+                  style: const TextStyle(
+                    color: Colors.deepOrange,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            SizedBox(
+              width: double.infinity,
+
+              child: ElevatedButton(
+                onPressed: buatPesanan,
+
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepOrange,
+                ),
+
+                child: const Text(
+                  "Buat Pesanan",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

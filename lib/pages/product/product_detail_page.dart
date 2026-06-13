@@ -6,17 +6,19 @@ import '../cart/checkout_page.dart';
 import '../auth/login_page.dart';
 
 class ProductDetailPage extends StatefulWidget {
+  final int id;
   final String name;
   final String price;
   final String description;
   final String image;
 
   const ProductDetailPage({
-    super.key,
-    required this.name,
-    required this.price,
-    required this.description,
-    required this.image,
+  super.key,
+  required this.id,
+  required this.name,
+  required this.price,
+  required this.description,
+  required this.image,
   });
 
   @override
@@ -80,10 +82,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     }
 
     CartData.items.add({
-      "name": widget.name,
-      "price": widget.price,
-      "qty": quantity,
-    });
+        "id": widget.id,
+        "name": widget.name,
+        "price": widget.price,
+        "qty": quantity,
+        "image": widget.image,
+        "description": widget.description,
+      });
 
     print("ISI KERANJANG:");
     print(CartData.items);

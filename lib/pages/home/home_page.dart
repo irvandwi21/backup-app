@@ -223,11 +223,12 @@ class _HomeContentState extends State<HomeContent> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => ProductDetailPage(
+                          id: product.id,
                           name: product.name,
                           price: product.price.toString(),
                           description: product.description,
                           image: product.image,
-                        ),
+                        )
                       ),
                     );
                   },
